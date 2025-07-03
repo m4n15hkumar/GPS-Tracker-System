@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Geolocation Tracking</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="X-demo.css">
+  <script>
+    const riderId = 1; // Change to your rider ID
+
+    function updateLocation(lat, lng) {
+      const formData = new FormData();
+      formData.append('req', 'update');
+      formData.append('id', riderId);
+      formData.append('lat', lat);
+      formData.append('lng', lng);
+
+      fetch("track-api.php", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.text();
+      })
+      .then(txt => {
+        console.log("Location updated:", txt);
+        document.getElementById("date").textContent = new Date().toLocaleString();
+        document.getElementById("lat").textContent = lat;
+        document.getElementById("lng").textContent = lng;
+      })
+      .catch(err => console.error("Update error:", err));
+    }
+
+    window.onload = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(pos => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          updateLocation(lat, lng);
+        }, err => {
+          console.error("Geolocation error:", err);
+          alert("Geolocation failed.");
+        }, { 
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+      } else {
+        alert("Geolocation not supported.");
+      }
+    };
+  </script>
+</head>
+<body>
+  <div class="row">
+    <div class="title">Updated</div>
+    <div class="data" id="date">--</div>
+  </div>
+  <div class="row">
+    <div class="title">Latitude, Longitude</div>
+    <div class="data">
+      <span id="lat">--</span>, <span id="lng">--</span>
+    </div>
+  </div>
+</body>
+</html>
